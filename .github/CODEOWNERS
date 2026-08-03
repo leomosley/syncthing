@@ -1,0 +1,5 @@
+# Default owner for everything
+* @leomosley
+
+# Critical paths - require explicit approval
+/.github/ @leomosley

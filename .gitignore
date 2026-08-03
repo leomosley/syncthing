@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.turbo/
+.astro/
+bun.lockb
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
