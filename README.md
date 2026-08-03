@@ -1,6 +1,6 @@
 # syncthing
 
-Sync a directory using GitHub as file storage and git for change detection.
+![alt text](docs/image.png)
 
 ## Commands
 
