@@ -18,7 +18,7 @@ export const runList = async (): Promise<number> => {
   const config = await loadConfig();
 
   if (config.dirs.length === 0) {
-    console.log(chalk.dim("no directories configured. run `syncthing init`"));
+    console.log(chalk.dim("no directories configured. run `syncthng init`"));
     return 0;
   }
 

@@ -103,7 +103,7 @@ const pickDirectory = async (start: string): Promise<string> => {
 };
 
 export const runInit = async (): Promise<number> => {
-  intro(chalk.bold("syncthing"));
+  intro(chalk.bold("syncthng"));
 
   if (!(await ghAvailable())) {
     log.error("GitHub CLI (gh) not found. Install it: https://cli.github.com");
@@ -280,7 +280,7 @@ export const runInit = async (): Promise<number> => {
   }
 
   outro(
-    `${chalk.green("Done.")} ${intervalLabel(interval).toLowerCase()}. ${chalk.dim("syncthing list")} to view.`
+    `${chalk.green("Done.")} ${intervalLabel(interval).toLowerCase()}. ${chalk.dim("syncthng list")} to view.`
   );
   return 0;
 };

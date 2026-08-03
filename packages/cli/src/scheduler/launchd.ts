@@ -6,7 +6,7 @@ import { logDir, logFile } from "../paths";
 import { run } from "../run";
 import { invocation, taskId, type Scheduler } from "./common";
 
-const label = (name: string): string => `com.syncthing.${taskId(name)}`;
+const label = (name: string): string => `com.syncthng.${taskId(name)}`;
 
 const plistPath = (name: string): string =>
   join(homedir(), "Library", "LaunchAgents", `${label(name)}.plist`);

@@ -4,7 +4,7 @@ import { logDir } from "../paths";
 import { run } from "../run";
 import { shellCommand, taskId, type Scheduler } from "./common";
 
-const taskName = (name: string): string => `syncthing_${taskId(name)}`;
+const taskName = (name: string): string => `syncthng_${taskId(name)}`;
 
 export const schtasksScheduler: Scheduler = {
   name: "schtasks",

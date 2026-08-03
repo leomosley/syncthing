@@ -1,7 +1,7 @@
 {
-  "name": "syncthing",
+  "name": "syncthng",
   "version": "0.1.0",
-  "description": "SyncThing a CLI for syncing directories using GitHub as file storage.",
+  "description": "Syncthng a CLI for syncing directories using GitHub as file storage.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -9,7 +9,7 @@
     "url": "https://github.com/leomosley/syncthing.git"
   },
   "bin": {
-    "syncthing": "./dist/index.js"
+    "syncthng": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "files": [

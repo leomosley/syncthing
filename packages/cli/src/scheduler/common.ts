@@ -3,7 +3,7 @@ import type { SyncedDir } from "../config";
 
 export const taskId = (name: string): string => name.replace(/[^a-zA-Z0-9-_]/g, "_");
 
-// argv for invoking `syncthing sync <name>`, split into binary + args
+// argv for invoking `syncthng sync <name>`, split into binary + args
 export const invocation = (name: string): { file: string; args: string[] } => {
   const { file, prefix } = selfInvocation();
   return { file, args: [...prefix, "sync", name] };

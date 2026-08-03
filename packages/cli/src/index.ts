@@ -12,7 +12,7 @@ const program = new Command();
 const finish = (code: number): void => process.exit(code);
 
 program
-  .name("syncthing")
+  .name("syncthng")
   .description("Sync a directory using GitHub as file storage and git for change detection.")
   .version("0.1.0");
 

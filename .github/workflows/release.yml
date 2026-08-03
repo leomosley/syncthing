@@ -43,7 +43,7 @@ jobs:
         id: check
         run: |
           NEXT="${{ steps.next.outputs.version }}"
-          NPM_LATEST=$(npm view syncthing version 2>/dev/null || echo "0.0.0")
+          NPM_LATEST=$(npm view syncthng version 2>/dev/null || echo "0.0.0")
           GIT_LATEST=$(git tag --sort=-version:refname | head -n1 | sed 's/^v//')
           HIGHEST=$(printf '%s\n' "$NPM_LATEST" "$GIT_LATEST" | sort -V | tail -n1)
           if [ -n "$NEXT" ] && [ "$HIGHEST" != "$NEXT" ]; then

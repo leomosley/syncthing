@@ -1,5 +1,5 @@
 {
-  "name": "syncthing",
+  "name": "syncthng",
   "private": true,
   "type": "module",
   "workspaces": [

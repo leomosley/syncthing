@@ -4,7 +4,7 @@ import { logDir, logFile } from "../paths";
 import { run } from "../run";
 import { cronExpression, shellCommand, taskId, type Scheduler } from "./common";
 
-const marker = (name: string): string => `# syncthing:${name}`;
+const marker = (name: string): string => `# syncthng:${name}`;
 
 const readCrontab = async (): Promise<string[]> => {
   const result = await run("crontab", ["-l"]);
