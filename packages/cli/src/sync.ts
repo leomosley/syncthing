@@ -21,7 +21,9 @@ export const isDue = (dir: SyncedDir, now: Date = new Date()): boolean => {
 };
 
 export const syncDir = async (dir: SyncedDir): Promise<SyncResult> => {
-  const { path: cwd, remote, branch } = { path: dir.path, remote: "origin", branch: dir.branch };
+  const cwd = dir.path;
+  const remote = "origin";
+  const branch = dir.branch;
 
   try {
     if (!(await git.isRepo(cwd))) {

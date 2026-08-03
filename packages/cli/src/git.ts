@@ -99,12 +99,3 @@ export const getRemoteUrl = async (cwd: string, remote: string): Promise<string 
   if (result.code !== 0) return undefined;
   return result.stdout.trim() || undefined;
 };
-
-export const setRemote = async (cwd: string, remote: string, url: string): Promise<void> => {
-  const existing = await gitSoft(["remote", "get-url", remote], cwd);
-  if (existing.code === 0) {
-    await git(["remote", "set-url", remote, url], cwd);
-    return;
-  }
-  await git(["remote", "add", remote, url], cwd);
-};

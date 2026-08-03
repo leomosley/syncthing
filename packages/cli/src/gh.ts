@@ -18,11 +18,16 @@ export const repoExists = async (owner: string, name: string): Promise<boolean> 
   return result.code === 0;
 };
 
-// creates a private repo from an existing local dir, wires origin, pushes current branch
-export const createRepo = async (name: string, cwd: string): Promise<void> => {
+// creates a repo from an existing local dir, wires origin, pushes current branch.
+// slug may be "name" or "owner/name"; visibility is "private" or "public".
+export const createRepo = async (
+  slug: string,
+  cwd: string,
+  visibility: "private" | "public"
+): Promise<void> => {
   await run(
     "gh",
-    ["repo", "create", name, "--private", "--source", cwd, "--remote", "origin", "--push"],
+    ["repo", "create", slug, `--${visibility}`, "--source", cwd, "--remote", "origin", "--push"],
     { cwd, throwOnError: true }
   );
 };

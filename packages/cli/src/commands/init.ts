@@ -1,7 +1,6 @@
-import { existsSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import { writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
 import {
   cancel,
   confirm,
@@ -22,9 +21,16 @@ import { createRepo, ghAuthed, ghAvailable, ghUser, repoExists } from "../gh";
 import { buildGitignore, ignoreGroups } from "../gitignore";
 import { getScheduler } from "../scheduler";
 
+type Visibility = "private" | "public";
+
 const bail = (): never => {
   cancel("Cancelled");
   process.exit(1);
+};
+
+const unwrap = <T>(value: T | symbol): T => {
+  if (isCancel(value)) bail();
+  return value as T;
 };
 
 const intervalOptions = [
@@ -38,6 +44,64 @@ const intervalOptions = [
   { value: 1440, label: "Once a day" },
 ];
 
+const intervalLabel = (minutes: number): string =>
+  intervalOptions.find((option) => option.value === minutes)?.label ?? `${minutes}m`;
+
+// sentinel values that cannot collide with absolute paths
+const USE = "\u0000use";
+const UP = "\u0000up";
+const NEW = "\u0000new";
+
+const listSubdirs = (dir: string): string[] => {
+  try {
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((name) => name !== ".git")
+      .sort((a, b) => a.localeCompare(b));
+  } catch {
+    return [];
+  }
+};
+
+const pickDirectory = async (start: string): Promise<string> => {
+  let current = resolve(start);
+
+  for (;;) {
+    const parent = dirname(current);
+    const subdirs = listSubdirs(current);
+
+    const options = [
+      { value: USE, label: chalk.green("Use this directory"), hint: current },
+      { value: NEW, label: "Create a new folder here" },
+      ...(parent !== current ? [{ value: UP, label: "..", hint: "parent" }] : []),
+      ...subdirs.map((name) => ({ value: join(current, name), label: `${name}/` })),
+    ];
+
+    const choice = unwrap<string>(
+      await select({ message: `Browse: ${chalk.dim(current)}`, options, maxItems: 12 })
+    );
+
+    if (choice === USE) return current;
+    if (choice === UP) {
+      current = parent;
+      continue;
+    }
+    if (choice === NEW) {
+      const folder = unwrap<string>(
+        await text({
+          message: "New folder name",
+          validate: (value) => (value.trim().length === 0 ? "Required" : undefined),
+        })
+      );
+      current = join(current, folder.trim());
+      await mkdir(current, { recursive: true });
+      continue;
+    }
+    current = choice;
+  }
+};
+
 export const runInit = async (): Promise<number> => {
   intro(chalk.bold("syncthing"));
 
@@ -50,96 +114,125 @@ export const runInit = async (): Promise<number> => {
     return 1;
   }
 
-  const owner = await ghUser();
-
+  const login = await ghUser();
   const config = await loadConfig();
 
   // directory
-  const dirInput = await text({
-    message: "Directory to sync",
-    placeholder: process.cwd(),
-    defaultValue: process.cwd(),
-    validate: (value) => (value.trim().length === 0 ? "Required" : undefined),
-  });
-  if (isCancel(dirInput)) bail();
-  const dirPath = resolve(dirInput as string);
-
+  const dirPath = await pickDirectory(process.cwd());
   if (config.dirs.some((dir) => dir.path === dirPath)) {
     log.error(`${dirPath} is already synced`);
     return 1;
   }
 
-  if (!existsSync(dirPath)) {
-    const create = await confirm({ message: `${dirPath} does not exist. Create it?` });
-    if (isCancel(create) || !create) bail();
-    await mkdir(dirPath, { recursive: true });
-  }
-
   const alreadyRepo = await git.isRepo(dirPath);
 
+  // owner
+  const owner = unwrap<string>(
+    await text({
+      message: "GitHub owner (user or org)",
+      defaultValue: login ?? "",
+      placeholder: login ?? "your-username",
+      validate: (value) => (value.trim().length === 0 ? "Required" : undefined),
+    })
+  ).trim();
+
   // repo name
-  const nameInput = await text({
-    message: "Private repo name",
-    defaultValue: basename(dirPath),
-    placeholder: basename(dirPath),
-    validate: (value) =>
-      /^[a-zA-Z0-9._-]+$/.test(value.trim()) ? undefined : "Use letters, numbers, . _ -",
-  });
-  if (isCancel(nameInput)) bail();
-  const name = (nameInput as string).trim();
+  const name = unwrap<string>(
+    await text({
+      message: "Repository name",
+      defaultValue: basename(dirPath),
+      placeholder: basename(dirPath),
+      validate: (value) =>
+        /^[a-zA-Z0-9._-]+$/.test(value.trim()) ? undefined : "Use letters, numbers, . _ -",
+    })
+  ).trim();
 
   if (config.dirs.some((dir) => dir.name === name)) {
     log.error(`a synced dir named "${name}" already exists`);
     return 1;
   }
-  if (owner && (await repoExists(owner, name))) {
+  if (await repoExists(owner, name)) {
     log.error(`repo ${owner}/${name} already exists on GitHub`);
     return 1;
   }
 
+  // visibility
+  const visibility = unwrap<Visibility>(
+    await select({
+      message: "Repository visibility",
+      options: [
+        { value: "private", label: "Private" },
+        { value: "public", label: "Public" },
+      ],
+    })
+  );
+
   // interval
-  const interval = await select({ message: "Sync interval", options: intervalOptions });
-  if (isCancel(interval)) bail();
+  const interval = unwrap<number>(
+    await select({ message: "Sync interval", options: intervalOptions })
+  );
 
   // gitignore
   const gitignorePath = join(dirPath, ".gitignore");
   let writeIgnore = true;
   if (existsSync(gitignorePath)) {
-    const overwrite = await confirm({
-      message: ".gitignore exists. Replace it with a generated one?",
-      initialValue: false,
-    });
-    if (isCancel(overwrite)) bail();
-    writeIgnore = overwrite as boolean;
+    writeIgnore = unwrap<boolean>(
+      await confirm({
+        message: ".gitignore exists. Replace it with a generated one?",
+        initialValue: false,
+      })
+    );
   }
 
   let gitignore = "";
+  let ignoreSummary = "kept existing";
   if (writeIgnore) {
-    const groups = await multiselect({
-      message: "What should git ignore? (space to toggle)",
-      options: ignoreGroups.map((group) => ({
-        value: group.id,
-        label: group.label,
-        hint: group.hint,
-      })),
-      initialValues: ["os", "env"],
-      required: false,
-    });
-    if (isCancel(groups)) bail();
+    const groups = unwrap<string[]>(
+      await multiselect({
+        message: "What should git ignore? (space to toggle)",
+        options: ignoreGroups.map((group) => ({
+          value: group.id,
+          label: group.label,
+          hint: group.hint,
+        })),
+        initialValues: ["os", "env"],
+        required: false,
+      })
+    );
 
-    const customInput = await text({
-      message: "Extra patterns (comma separated, e.g. .env*, secrets/)",
-      placeholder: "leave blank for none",
-      defaultValue: "",
-    });
-    if (isCancel(customInput)) bail();
-    const custom = (customInput as string).split(/[\n,]/).map((line) => line.trim());
+    const customInput = unwrap<string>(
+      await text({
+        message: "Extra patterns (comma separated, e.g. .env*, secrets/)",
+        placeholder: "leave blank for none",
+        defaultValue: "",
+      })
+    );
+    const custom = customInput.split(/[\n,]/).map((line) => line.trim());
 
-    gitignore = buildGitignore(groups as string[], custom);
-    note(gitignore.trim(), ".gitignore preview");
+    gitignore = buildGitignore(groups, custom);
+    const customCount = custom.filter(Boolean).length;
+    ignoreSummary = `${groups.length} group(s)${customCount > 0 ? `, ${customCount} custom` : ""}`;
   }
 
   const branch = alreadyRepo ? await git.currentBranch(dirPath) : "main";
+  const slug = `${owner}/${name}`;
+
+  // review
+  note(
+    [
+      `${chalk.dim("Directory")}   ${dirPath}`,
+      `${chalk.dim("Repository")}  ${slug} ${chalk.dim(`(${visibility})`)}`,
+      `${chalk.dim("Branch")}      ${branch}`,
+      `${chalk.dim("Interval")}    ${intervalLabel(interval)}`,
+      `${chalk.dim("Ignore")}      ${ignoreSummary}`,
+    ].join("\n"),
+    "Review"
+  );
+
+  const proceed = unwrap<boolean>(
+    await confirm({ message: `Create ${chalk.bold(slug)} and start syncing?` })
+  );
+  if (!proceed) bail();
 
   // execute
   const s = spinner();
@@ -159,8 +252,8 @@ export const runInit = async (): Promise<number> => {
       s.message("Pushing to existing origin");
       await git.push(dirPath, "origin", branch, true);
     } else {
-      s.message("Creating private GitHub repo");
-      await createRepo(name, dirPath);
+      s.message(`Creating ${visibility} GitHub repo`);
+      await createRepo(slug, dirPath, visibility);
     }
 
     const remote = (await git.getRemoteUrl(dirPath, "origin")) ?? "origin";
@@ -170,7 +263,7 @@ export const runInit = async (): Promise<number> => {
       path: dirPath,
       remote,
       branch,
-      interval: interval as number,
+      interval,
       lastSync: new Date().toISOString(),
     };
 
@@ -187,7 +280,7 @@ export const runInit = async (): Promise<number> => {
   }
 
   outro(
-    `${chalk.green("Done.")} ${chalk.dim("syncthing list")} to view, syncing every ${interval as number}m.`
+    `${chalk.green("Done.")} ${intervalLabel(interval).toLowerCase()}. ${chalk.dim("syncthing list")} to view.`
   );
   return 0;
 };

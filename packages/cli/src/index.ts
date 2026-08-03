@@ -55,6 +55,11 @@ service
   .description("Remove all scheduled tasks")
   .action(async () => finish(await runServiceUninstall()));
 
+if (process.argv.slice(2).length === 0) {
+  program.outputHelp();
+  process.exit(0);
+}
+
 program.parseAsync().catch((error) => {
   console.error(error);
   process.exit(1);
