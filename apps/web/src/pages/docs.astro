@@ -1,0 +1,153 @@
+---
+import Base from "../layouts/Base.astro";
+import CopyCommand from "../components/CopyCommand.astro";
+
+const commands = [
+  { cmd: "syncthing init", desc: "Set up a new folder to sync (interactive)." },
+  { cmd: "syncthing sync [name]", desc: "Sync now. Omit the name to sync all folders." },
+  { cmd: "syncthing list", desc: "List configured folders and their intervals." },
+  { cmd: "syncthing status", desc: "Show the live git state for each folder." },
+  { cmd: "syncthing remove [name]", desc: "Stop syncing a folder. Files are kept." },
+  { cmd: "syncthing service repair", desc: "Re-register every scheduled task." },
+  { cmd: "syncthing service uninstall", desc: "Remove every scheduled task." },
+];
+
+const requirements = [
+  { name: "git", note: "used for change detection and transport" },
+  { name: "GitHub CLI (gh)", note: "authenticated via gh auth login" },
+  { name: "bun", note: "runtime the CLI is built for" },
+];
+
+const steps = [
+  { platform: "macOS", tech: "launchd", detail: "a per-folder LaunchAgent" },
+  { platform: "Linux", tech: "cron", detail: "a per-folder crontab entry" },
+  { platform: "Windows", tech: "schtasks", detail: "a per-folder scheduled task" },
+];
+
+const install = `git clone https://github.com/leomosley/syncthing
+cd syncthing/packages/cli
+bun install
+bun run link`;
+---
+
+<Base
+  title="syncthing — docs"
+  description="How to install and use syncthing, the folder sync CLI backed by GitHub."
+  active="docs"
+>
+  <article class="mx-auto max-w-2xl px-5 pb-28 pt-32 sm:pt-40 [&_h2]:scroll-mt-24">
+    <header class="animate-fade-up delay-1 mb-16">
+      <h1 class="text-3xl font-light tracking-tight text-white">Docs</h1>
+      <p class="mt-3 text-sm leading-relaxed text-neutral-500">
+        syncthing keeps a directory in sync using a private GitHub repo as storage and git to decide
+        when to push or pull. You work on one machine at a time; it handles the rest on a schedule.
+      </p>
+    </header>
+
+    <section class="animate-fade-up delay-2 mb-14">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+        Requirements
+      </h2>
+      <ul class="divide-y divide-white/[0.06] rounded-xl border border-white/[0.06]">
+        {
+          requirements.map((req) => (
+            <li class="flex items-baseline justify-between gap-4 px-4 py-3">
+              <span class="font-mono text-sm text-neutral-200">{req.name}</span>
+              <span class="text-right text-sm text-neutral-500">{req.note}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="animate-fade-up delay-2 mb-14">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">Install</h2>
+      <p class="mb-4 text-sm leading-relaxed text-neutral-500">
+        Not on npm yet — clone the repo and link the CLI globally with bun.
+      </p>
+      <pre
+        class="overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 font-mono text-sm leading-relaxed text-neutral-300"><code>{install}</code></pre>
+      <p class="mt-4 text-sm leading-relaxed text-neutral-500">
+        After editing the CLI, rerun <span class="font-mono text-neutral-300">bun run build</span> in
+        <span class="font-mono text-neutral-300">packages/cli</span> to refresh the global binary.
+      </p>
+    </section>
+
+    <section class="animate-fade-up delay-3 mb-14">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+        Quick start
+      </h2>
+      <p class="mb-5 text-sm leading-relaxed text-neutral-500">
+        Run init and follow the prompts — browse to a folder, name the repo, choose visibility and
+        an interval, and pick what to ignore.
+      </p>
+      <CopyCommand command="syncthing init" />
+    </section>
+
+    <section class="animate-fade-up delay-3 mb-14">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">Commands</h2>
+      <ul class="divide-y divide-white/[0.06] rounded-xl border border-white/[0.06]">
+        {
+          commands.map((command) => (
+            <li class="px-4 py-3">
+              <p class="font-mono text-sm text-accent">{command.cmd}</p>
+              <p class="mt-1 text-sm text-neutral-500">{command.desc}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="animate-fade-up delay-4 mb-14">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+        How it works
+      </h2>
+      <ol class="space-y-3 text-sm leading-relaxed text-neutral-500">
+        <li>
+          <span class="text-neutral-300">Commit.</span> Any local edits are staged and committed before
+          comparing with the remote.
+        </li>
+        <li>
+          <span class="text-neutral-300">Compare.</span> It fetches origin and reads how far ahead or
+          behind the branch is.
+        </li>
+        <li>
+          <span class="text-neutral-300">Move.</span> Behind → fast-forward pull. Ahead → push. Diverged
+          → rebase and push, aborting safely on conflict.
+        </li>
+      </ol>
+    </section>
+
+    <section class="animate-fade-up delay-4 mb-14">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+        Scheduling
+      </h2>
+      <p class="mb-5 text-sm leading-relaxed text-neutral-500">
+        Each folder gets one short-lived, native scheduled task at its own interval — no background
+        daemon holding memory.
+      </p>
+      <ul class="divide-y divide-white/[0.06] rounded-xl border border-white/[0.06]">
+        {
+          steps.map((step) => (
+            <li class="flex items-baseline justify-between gap-4 px-4 py-3">
+              <span class="text-sm text-neutral-200">{step.platform}</span>
+              <span class="text-right text-sm text-neutral-500">
+                <span class="font-mono text-neutral-400">{step.tech}</span> — {step.detail}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="animate-fade-up delay-4">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">Config</h2>
+      <p class="text-sm leading-relaxed text-neutral-500">
+        Your folders live in <span class="font-mono text-neutral-300"
+          >~/.config/syncthing/config.json</span
+        > (<span class="font-mono text-neutral-300">%APPDATA%\syncthing</span> on Windows). Removing a
+        folder unregisters its task but never touches your files.
+      </p>
+    </section>
+  </article>
+</Base>

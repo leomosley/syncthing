@@ -1,15 +1,73 @@
 ---
-import "../styles/global.css";
+import Base from "../layouts/Base.astro";
+import CopyCommand from "../components/CopyCommand.astro";
+
+const features = [
+  {
+    title: "Git under the hood",
+    body: "Changes are detected with git and stored in a private repo you own. No third-party servers.",
+  },
+  {
+    title: "Push or pull, automatically",
+    body: "A scheduled check commits local edits or fast-forwards remote ones on the interval you set.",
+  },
+  {
+    title: "Runs everywhere",
+    body: "One native scheduled task per folder on macOS, Linux and Windows. Zero resident processes.",
+  },
+];
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>syncthing</title>
-  </head>
-  <body>
-    <main></main>
-  </body>
-</html>
+<Base
+  title="syncthing — sync a folder through GitHub"
+  description="A tiny CLI that keeps a directory in sync using GitHub as file storage and git for change detection."
+  active="home"
+>
+  <section
+    class="mx-auto flex max-w-3xl flex-col items-center px-5 pb-24 pt-36 text-center sm:pt-44"
+  >
+    <p
+      class="animate-fade-up delay-1 mb-5 font-mono text-xs uppercase tracking-[0.2em] text-neutral-500"
+    >
+      folder sync, self-owned
+    </p>
+
+    <h1
+      class="animate-fade-up delay-2 max-w-2xl text-4xl font-light leading-[1.1] tracking-tight text-white sm:text-6xl"
+    >
+      Keep a folder in sync through your&nbsp;<span class="text-accent">own GitHub</span>.
+    </h1>
+
+    <p
+      class="animate-fade-up delay-3 mt-6 max-w-md text-sm leading-relaxed text-neutral-500 sm:text-base"
+    >
+      Pick a directory, point it at a private repo, set an interval. It pushes your changes and
+      pulls new ones on a schedule — quietly, in the background.
+    </p>
+
+    <div class="animate-fade-up delay-4 mt-9 flex flex-col items-center gap-4 sm:flex-row">
+      <CopyCommand command="syncthing init" />
+      <a
+        href="/docs"
+        class="text-sm text-neutral-400 transition-colors duration-200 hover:text-accent"
+      >
+        Read the docs →
+      </a>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-5 pb-28">
+    <div
+      class="grid gap-px overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] sm:grid-cols-3"
+    >
+      {
+        features.map((feature) => (
+          <div class="bg-bg/40 p-6">
+            <h2 class="mb-2 text-sm font-medium text-neutral-200">{feature.title}</h2>
+            <p class="text-sm leading-relaxed text-neutral-500">{feature.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</Base>
