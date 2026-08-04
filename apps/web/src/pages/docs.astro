@@ -4,6 +4,10 @@ import CopyCommand from "../components/CopyCommand.astro";
 
 const commands = [
   { cmd: "npx syncthng init", desc: "Set up a new folder to sync (interactive)." },
+  {
+    cmd: "npx syncthng connect [owner/repo] [directory]",
+    desc: "Clone an existing sync and schedule it on this machine.",
+  },
   { cmd: "npx syncthng sync [name]", desc: "Sync now. Omit the name to sync all folders." },
   { cmd: "npx syncthng list", desc: "List configured folders and their intervals." },
   { cmd: "npx syncthng status", desc: "Show the live git state for each folder." },

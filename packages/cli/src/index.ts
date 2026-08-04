@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
+import { runConnect } from "./commands/connect";
 import { runInit } from "./commands/init";
 import { runList } from "./commands/list";
 import { runRemove } from "./commands/remove";
@@ -20,6 +21,15 @@ program
   .command("init")
   .description("Set up a new directory to sync")
   .action(async () => finish(await runInit()));
+
+program
+  .command("connect")
+  .argument("[repository]", "existing GitHub repository as owner/name")
+  .argument("[directory]", "new local directory to clone into")
+  .description("Connect this machine to an existing sync")
+  .action(async (repository?: string, directory?: string) =>
+    finish(await runConnect(repository, directory))
+  );
 
 program
   .command("sync")

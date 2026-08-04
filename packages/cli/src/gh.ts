@@ -18,6 +18,10 @@ export const repoExists = async (owner: string, name: string): Promise<boolean> 
   return result.code === 0;
 };
 
+export const cloneRepo = async (slug: string, destination: string): Promise<void> => {
+  await run("gh", ["repo", "clone", slug, destination], { throwOnError: true });
+};
+
 // creates a repo from an existing local dir, wires origin, pushes current branch.
 // slug may be "name" or "owner/name"; visibility is "private" or "public".
 export const createRepo = async (
