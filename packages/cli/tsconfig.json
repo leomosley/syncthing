@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
     "declaration": true,
-    "types": ["bun-types"],
+    "types": ["node"],
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src/**/*"]

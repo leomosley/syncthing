@@ -17,7 +17,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun --format esm --minify",
+    "build": "bun build src/index.ts --outdir dist --target node --format esm --minify",
     "dev": "bun run src/index.ts",
     "start": "bun run src/index.ts",
     "link": "bun run build && bun link",
@@ -32,10 +32,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/node": "^24.0.0"
   },
   "engines": {
-    "bun": ">=1.1.0"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public"
