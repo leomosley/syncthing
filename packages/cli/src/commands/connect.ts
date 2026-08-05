@@ -1,17 +1,6 @@
 import { existsSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import {
-  cancel,
-  confirm,
-  intro,
-  isCancel,
-  log,
-  note,
-  outro,
-  select,
-  spinner,
-  text,
-} from "@clack/prompts";
+import { cancel, confirm, intro, log, note, outro, select, spinner, text } from "@clack/prompts";
 import chalk from "chalk";
 import { loadConfig, saveConfig, upsertDir, type SyncedDir } from "../config";
 import * as git from "../git";
@@ -34,8 +23,8 @@ const bail = (): never => {
   process.exit(1);
 };
 
-const unwrap = <T>(value: T | symbol): T => {
-  if (isCancel(value)) bail();
+const unwrap = <T>(value: T | symbol | undefined): T => {
+  if (typeof value === "symbol" || value === undefined) bail();
   return value as T;
 };
 
@@ -64,7 +53,9 @@ export const runConnect = async (repository?: string, destination?: string): Pro
           message: "Existing GitHub repository",
           placeholder: "owner/repository",
           validate: (value) =>
-            /^[^/\s]+\/[^/\s]+$/.test(normalizeSlug(value)) ? undefined : "Use owner/repository",
+            value && /^[^/\s]+\/[^/\s]+$/.test(normalizeSlug(value))
+              ? undefined
+              : "Use owner/repository",
         })
       )
   );
@@ -85,7 +76,7 @@ export const runConnect = async (repository?: string, destination?: string): Pro
         await text({
           message: "Local directory",
           defaultValue: resolve(process.cwd(), name),
-          validate: (value) => (value.trim().length === 0 ? "Required" : undefined),
+          validate: (value) => (!value?.trim() ? "Required" : undefined),
         })
       )
   );

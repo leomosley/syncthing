@@ -5,7 +5,6 @@ import {
   cancel,
   confirm,
   intro,
-  isCancel,
   log,
   multiselect,
   note,
@@ -28,8 +27,8 @@ const bail = (): never => {
   process.exit(1);
 };
 
-const unwrap = <T>(value: T | symbol): T => {
-  if (isCancel(value)) bail();
+const unwrap = <T>(value: T | symbol | undefined): T => {
+  if (typeof value === "symbol" || value === undefined) bail();
   return value as T;
 };
 
@@ -91,7 +90,7 @@ const pickDirectory = async (start: string): Promise<string> => {
       const folder = unwrap<string>(
         await text({
           message: "New folder name",
-          validate: (value) => (value.trim().length === 0 ? "Required" : undefined),
+          validate: (value) => (!value?.trim() ? "Required" : undefined),
         })
       );
       current = join(current, folder.trim());
@@ -132,7 +131,7 @@ export const runInit = async (): Promise<number> => {
       message: "GitHub owner (user or org)",
       defaultValue: login ?? "",
       placeholder: login ?? "your-username",
-      validate: (value) => (value.trim().length === 0 ? "Required" : undefined),
+      validate: (value) => (!value?.trim() ? "Required" : undefined),
     })
   ).trim();
 
@@ -143,7 +142,7 @@ export const runInit = async (): Promise<number> => {
       defaultValue: basename(dirPath),
       placeholder: basename(dirPath),
       validate: (value) =>
-        /^[a-zA-Z0-9._-]+$/.test(value.trim()) ? undefined : "Use letters, numbers, . _ -",
+        value && /^[a-zA-Z0-9._-]+$/.test(value.trim()) ? undefined : "Use letters, numbers, . _ -",
     })
   ).trim();
 

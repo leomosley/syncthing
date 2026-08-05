@@ -18,7 +18,7 @@ export const runRemove = async (name?: string): Promise<number> => {
       message: "Which directory to stop syncing?",
       options: config.dirs.map((dir) => ({ value: dir.name, label: dir.name, hint: dir.path })),
     });
-    if (isCancel(selected)) {
+    if (isCancel(selected) || selected === undefined) {
       cancel("Cancelled");
       return 1;
     }
