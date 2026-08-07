@@ -18,6 +18,12 @@ export const logDir = (): string => join(configDir(), "logs");
 
 export const logFile = (name: string): string => join(logDir(), `${name}.log`);
 
+// directory holding the hidden-launch vbs scripts used by the Windows scheduler
+export const launcherDir = (): string => join(configDir(), "launchers");
+
+export const launcherFile = (taskName: string): string =>
+  join(launcherDir(), `${taskName}.vbs`);
+
 // how the scheduler should re-invoke this cli
 export const selfInvocation = (): { file: string; prefix: string[] } => ({
   file: process.execPath,
