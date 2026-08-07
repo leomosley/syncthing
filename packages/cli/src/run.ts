@@ -29,6 +29,9 @@ export const run = (file: string, args: string[], options: RunOptions = {}): Pro
       cwd: options.cwd,
       env: options.env ?? process.env,
       shell: false,
+      // Prevent a console window from flashing on Windows (e.g. during the
+      // scheduled sync check). No effect on other platforms.
+      windowsHide: true,
     });
 
     let stdout = "";

@@ -16,7 +16,10 @@ const writeCrontab = async (lines: string[]): Promise<void> => {
   const content = `${lines.filter((line) => line.length > 0).join("\n")}\n`;
   const { spawn } = await import("node:child_process");
   await new Promise<void>((resolve, reject) => {
-    const child = spawn("crontab", ["-"], { stdio: ["pipe", "ignore", "pipe"] });
+    const child = spawn("crontab", ["-"], {
+      stdio: ["pipe", "ignore", "pipe"],
+      windowsHide: true,
+    });
     let stderr = "";
     child.stderr.on("data", (chunk) => (stderr += chunk.toString()));
     child.on("error", reject);
