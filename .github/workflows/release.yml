@@ -26,7 +26,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install git-cliff
-        uses: taiki-e/install-action@v2.85.5
+        uses: taiki-e/install-action@v2.85.13
         with:
           tool: git-cliff
 
