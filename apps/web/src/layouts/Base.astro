@@ -45,7 +45,7 @@ const ogImage = new URL("/og.png", site);
       rel="stylesheet"
     />
   </head>
-  <body class="min-h-screen antialiased text-neutral-300">
+  <body class="flex min-h-screen flex-col antialiased text-neutral-300">
     <header class="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 sm:px-8">
       <a
         href="/"
@@ -85,7 +85,7 @@ const ogImage = new URL("/og.png", site);
       </nav>
     </header>
 
-    <main class="relative z-10">
+    <main class="relative z-10 flex-1">
       <slot />
     </main>
 
