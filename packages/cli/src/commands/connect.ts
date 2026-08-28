@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { resolve } from "node:path";
 import { cancel, confirm, intro, log, note, outro, select, spinner, text } from "@clack/prompts";
 import chalk from "chalk";
 import { loadConfig, saveConfig, upsertDir, type SyncedDir } from "../config";
@@ -103,7 +103,7 @@ export const runConnect = async (repository?: string, destination?: string): Pro
     [
       `${chalk.dim("Repository")}  ${slug}`,
       `${chalk.dim("Directory")}   ${dirPath}`,
-      `${chalk.dim("Name")}        ${basename(dirPath)}`,
+      `${chalk.dim("Name")}        ${name}`,
       `${chalk.dim("Interval")}    ${intervalOptions.find((option) => option.value === interval)?.label}`,
     ].join("\n"),
     "Review"
